@@ -1,9 +1,12 @@
 import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/register_user_controller.dart';
+import 'package:flutter_task_manager_api_project/UI/screens/UserHomeScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/CenterCircullarProgressIndicator.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
+import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 import 'package:email_validator/email_validator.dart';
 
@@ -24,7 +27,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController joinPasswordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  bool _registrationInProgress = false;
+  final RegisterUserController registerUserController =
+      Get.find<RegisterUserController>();
 
   @override
   Widget build(BuildContext context) {
@@ -131,19 +135,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Visibility(
-                    visible: _registrationInProgress == false,
-                    replacement: const CenterCircularProgressIndicator(),
-                    child: ElevatedButton(
-                      onPressed: _onTapSubmitButton,
-                      child: Icon(
-                        Icons.double_arrow_sharp,
-                        color: Colors.white,
+                GetBuilder(
+                  init: registerUserController,
+                  builder: ((controller) {
+                    return Visibility(
+                      visible: !registerUserController.isRegistrationInProgress,
+                      replacement: const CenterCircularProgressIndicator(),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _onTapSubmitButton,
+                          child: Icon(
+                            Icons.double_arrow_sharp,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ),
                 SizedBox(height: 5.h),
                 Row(
@@ -173,48 +182,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  void _onTapSubmitButton() {
+  void _onTapSubmitButton() async {
     if (_formKey.currentState!.validate()) {
-      _registerUser();
+      bool isSuccess = await registerUserController.registerUser(
+        joinEmailController.text,
+        joinFNameController.text,
+        joinLNameController.text,
+        joinPhoneController.text,
+        joinPasswordController.text,
+      );
+      if (isSuccess) {
+        _clearTextField();
+        Get.offAll(UserHomeScreen());
+      }else{
+        showSnackBarMessage(context, registerUserController.errorMessage);
+      }
     }
   }
 
-  Future<void> _registerUser() async {
-    _registrationInProgress = true;
-
-    setState(() {});
-
-    Map<String, dynamic> requestBody = {
-      "email": joinEmailController.text.trim(),
-      "firstName": joinFNameController.text.trim(),
-      "lastName": joinLNameController.text.trim(),
-      "mobile": joinPhoneController.text.trim(),
-      "password": joinPasswordController.text,
-    };
-
-    NetworkResponse response = await NetworkClient.postRequest(
-      url: Urls.registerUrl,
-      body: requestBody,
-    );
-
-    _registrationInProgress = false;
-    setState(() {});
-
-    void _clearTextField(){
-      joinEmailController.clear();
-      joinFNameController.clear();
-      joinLNameController.clear();
-      joinPhoneController.clear();
-      joinPasswordController.clear();
-    }
-
-    if (response.isSuccess){
-      _clearTextField();
-      showSnackBarMessage(context, 'User registered successfully!');
-      Navigator.pop(context);
-    }else{
-      showSnackBarMessage(context, '${response.errorMessage}', true);
-    }
+  void _clearTextField() {
+    joinEmailController.clear();
+    joinFNameController.clear();
+    joinLNameController.clear();
+    joinPhoneController.clear();
+    joinPasswordController.clear();
   }
 
   @override

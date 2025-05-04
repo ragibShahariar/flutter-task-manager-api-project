@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/UI/Controllers/auth_controller.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/profile_Controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/UpdateProfileScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/log_in_screen.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class TMAppBar extends StatefulWidget implements PreferredSizeWidget {
   TMAppBar({super.key, this.fromProfileScreen});
@@ -17,6 +20,7 @@ class TMAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _TMAppBarState extends State<TMAppBar> {
   late bool isUpdated = false;
+  final ProfileController profileController = Get.find<ProfileController>();
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +52,24 @@ class _TMAppBarState extends State<TMAppBar> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  AuthController.userModel?.fullName ?? "Unknown",
-                  style: TextStyle(color: Colors.white, fontSize: 20),
+                GetBuilder(
+                  init: profileController,
+                  builder: (controller) {
+                    return Text(
+                      profileController.fullName,
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    );
+                  },
                 ),
-                Text(
-                  AuthController.userModel?.email ?? "Unknown",
-                  style: TextStyle(color: Colors.white, fontSize: 13),
+
+                GetBuilder(
+                  init: profileController,
+                  builder: (controller) {
+                    return Text(
+                      profileController.userEmail,
+                      style: TextStyle(color: Colors.white, fontSize: 13),
+                    );
+                  },
                 ),
               ],
             ),

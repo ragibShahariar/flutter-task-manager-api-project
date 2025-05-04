@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
 import 'package:flutter_task_manager_api_project/Data/model/Task_List_Model.dart';
 import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/progress_task_fetch_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/CenterCircullarProgressIndicator.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/TaskCard.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 import '../../Data/model/task_model.dart';
 
@@ -12,7 +15,8 @@ class ProgressTaskScreen extends StatefulWidget {
   const ProgressTaskScreen({
     super.key,
     required this.deleteTask,
-    required this.getChipColor, required this.taskCount,
+    required this.getChipColor,
+    required this.taskCount,
   });
 
   final Future<void> Function(TaskModel task) deleteTask;
@@ -24,53 +28,39 @@ class ProgressTaskScreen extends StatefulWidget {
 }
 
 class ProgressTaskScreenState extends State<ProgressTaskScreen> {
-  bool _isGetProgressTaskInProgress = false;
-  List<TaskModel> progressTaskList = [];
+  final ProgressTaskFetchController progressTaskFetchController =
+      Get.find<ProgressTaskFetchController>();
 
   @override
   void initState() {
-    getProgressTasks();
+    progressTaskFetchController.getProgressTask();
     super.initState();
-  }
-
-  Future<void> getProgressTasks() async {
-    _isGetProgressTaskInProgress = true;
-    setState(() {});
-
-    NetworkResponse response = await NetworkClient.getRequest(
-      url: Urls.getProgressTaskUrl,
-    );
-
-    if (response.isSuccess) {
-      TaskListModel taskListModel = TaskListModel.fromJson(response.data ?? {});
-      progressTaskList = taskListModel.taskList;
-    } else {
-      showSnackBarMessage(context, "${response.errorMessage}", true);
-    }
-
-    _isGetProgressTaskInProgress = false;
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-
-    return Visibility(
-      replacement: CenterCircularProgressIndicator(),
-      visible: !_isGetProgressTaskInProgress,
-      child: ListView.separated(
-        itemCount: progressTaskList.length,
-        itemBuilder: (context, index) {
-          return TaskCard(
-            task: progressTaskList[index],
-            getChipColor: widget.getChipColor,
-            deleteTask: widget.deleteTask,
-            getTask: getProgressTasks,
-            fetchTaskCount: widget.taskCount,
-          );
-        },
-        separatorBuilder: (context, index) => const SizedBox(height: 5),
-      ),
+    return
+    GetBuilder(
+      init: progressTaskFetchController,
+      builder: (controller) {
+        return Visibility(
+          replacement: CenterCircularProgressIndicator(),
+          visible: !progressTaskFetchController.isGetNewTaskIsInProgress,
+          child: ListView.separated(
+            itemCount: controller.progressTask.length,
+            itemBuilder: (context, index) {
+              return TaskCard(
+                task: controller.progressTask[index],
+                getChipColor: widget.getChipColor,
+                deleteTask: widget.deleteTask,
+                getTask: progressTaskFetchController.getProgressTask,
+                fetchTaskCount: widget.taskCount,
+              );
+            },
+            separatorBuilder: (context, index) => const SizedBox(height: 5),
+          ),
+        );
+      },
     );
   }
 }

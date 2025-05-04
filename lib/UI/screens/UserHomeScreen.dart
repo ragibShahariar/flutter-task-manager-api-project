@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
-import 'package:flutter_task_manager_api_project/Data/model/Task_Status_Count.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/task_count_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/add_task.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/summary_card.dart';
+import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
-import 'package:flutter_task_manager_api_project/Data/model/Task_Status_Count_List_Model.dart';
 import 'package:flutter_task_manager_api_project/Data/model/task_model.dart';
 import '../../Data/utils/urls.dart';
+import '../Controllers/cancel_task_fetch_controller.dart';
+import '../Controllers/complete_task_fetch_controller.dart';
+import '../Controllers/delete_task_controller.dart';
+import '../Controllers/new_task_fetch_controller.dart';
+import '../Controllers/progress_task_fetch_controller.dart';
 import '../widgets/TMAppBar.dart';
 import 'CancelTaskScreen.dart';
 import 'CompletedTaskScreen.dart';
@@ -24,11 +29,6 @@ class UserHomeScreen extends StatefulWidget {
 class _UserHomeScreenState extends State<UserHomeScreen> {
   int selectedIndex = 0;
 
-  int newTaskCount = 0;
-  int completeTaskCount = 0;
-  int progressTaskCount = 0;
-  int cancelTaskCount = 0;
-
   final GlobalKey<NewTaskScreenState> _newTaskKey = GlobalKey();
   final GlobalKey<ProgressTaskScreenState> _progressTaskKey = GlobalKey();
   final GlobalKey<CompletedTaskScreenState> _completedTaskKey = GlobalKey();
@@ -38,6 +38,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   late ProgressTaskScreen _progressTaskScreen;
   late CompletedTaskScreen _completedTaskScreen;
   late CancelScreen _cancelScreen;
+
+  final CancelTaskFetchController cancelTaskFetchController =
+      Get.find<CancelTaskFetchController>();
+  final NewTaskFetchController newTaskFetchController =
+      Get.find<NewTaskFetchController>();
+  final ProgressTaskFetchController progressTaskFetchController =
+      Get.find<ProgressTaskFetchController>();
+  final CompleteTaskFetchController completeTaskFetchController =
+      Get.find<CompleteTaskFetchController>();
+
+  final FetchTaskCountController taskCountController =
+      Get.find<FetchTaskCountController>();
+
+  final DeleteTaskController deleteTaskController = Get.find<DeleteTaskController>();
 
   Color getChipColor(String status) {
     if (status == "New") {
@@ -52,69 +66,27 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return Colors.white;
   }
 
-  Future<bool> deleteTask(TaskModel task) async {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    NetworkResponse response = await NetworkClient.getRequest(
-      url: Urls.deleteATaskUrl(task.id),
-    );
-    if (response.isSuccess) {
-      showSnackBarMessage(
-        context,
-        "${task.title} has been deleted successfully.",
-      );
-      _refreshCurrentScreen();
-      await fetchTaskCount();
-      return true;
-    } else {
-      showSnackBarMessage(context, "${response.errorMessage}");
-      return false;
-    }
-  }
-
-  void _refreshCurrentScreen() async{
+  void _refreshCurrentScreen() async {
     if (selectedIndex == 0) {
-      _newTaskKey.currentState?.getNewTask();
+      newTaskFetchController.getNewTask();
     } else if (selectedIndex == 1) {
-      _progressTaskKey.currentState?.getProgressTasks();
+      progressTaskFetchController.getProgressTask();
     } else if (selectedIndex == 2) {
-      _completedTaskKey.currentState?.getCompletedTask();
+      completeTaskFetchController.getCompleteTask();
     } else if (selectedIndex == 3) {
-      _cancelTaskKey.currentState?.getCancelledTasks();
+      cancelTaskFetchController.getCancelTask();
     }
-    await fetchTaskCount();
+    await taskCountController.fetchTaskCount();
   }
 
-  Future<void> fetchTaskCount() async{
-    NetworkResponse response = await NetworkClient.getRequest(url: Urls.getTaskStatusCountUrl);
-
-    int newCount = 0;
-    int progressCount = 0;
-    int completeCount = 0;
-    int cancelCount = 0;
-
-    if (response.isSuccess){
-      var taskCountList = TaskStatusCountListModel.fromJson(response.data!);
-        for (TaskStatusCountModel taskCount in taskCountList.statusCountList){
-          if (taskCount.status == "New"){
-            newCount = taskCount.count;
-          }
-          else if (taskCount.status == "Progress"){
-            progressCount = taskCount.count;
-          }
-          else if (taskCount.status == "Complete"){
-            completeCount = taskCount.count;
-          }
-          else if (taskCount.status == "Cancel"){
-            cancelCount = taskCount.count;
-          }
-        }
-
-        setState(() {
-          newTaskCount = newCount;
-          progressTaskCount = progressCount;
-          cancelTaskCount = cancelCount;
-          completeTaskCount = completeCount;
-        });
+  Future<void> deleteTask(TaskModel task) async{
+    bool isSuccess = await deleteTaskController.deleteTask(task);
+    if (isSuccess){
+      showSnackBarMessage(context, 'Task deleted successfully.');
+      taskCountController.fetchTaskCount();
+      _refreshCurrentScreen();
+    }else{
+      showSnackBarMessage(context, deleteTaskController.errorMessage, true);
     }
   }
 
@@ -126,30 +98,29 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       key: _newTaskKey,
       getChipColor: getChipColor,
       deleteTask: deleteTask,
-      taskCount: fetchTaskCount,
+      taskCount: taskCountController.fetchTaskCount,
     );
     _progressTaskScreen = ProgressTaskScreen(
       key: _progressTaskKey,
       getChipColor: getChipColor,
       deleteTask: deleteTask,
-      taskCount: fetchTaskCount,
+      taskCount: taskCountController.fetchTaskCount,
     );
     _completedTaskScreen = CompletedTaskScreen(
       key: _completedTaskKey,
       getChipColor: getChipColor,
       deleteTask: deleteTask,
-      taskCount: fetchTaskCount,
+      taskCount: taskCountController.fetchTaskCount,
     );
     _cancelScreen = CancelScreen(
       key: _cancelTaskKey,
       getChipColor: getChipColor,
       deleteTask: deleteTask,
-      taskCount: fetchTaskCount,
+      taskCount: taskCountController.fetchTaskCount,
     );
 
-    fetchTaskCount();
+    taskCountController.fetchTaskCount();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -167,19 +138,57 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
             scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: 10.w,
-              children: [
-                SummaryCard(title: "New", count: newTaskCount),
-                SummaryCard(title: "progressing", count: progressTaskCount),
-                SummaryCard(title: "completed", count: completeTaskCount),
-                SummaryCard(title: "canceled", count: cancelTaskCount),
-              ],
+            child: GetBuilder(
+              init: taskCountController,
+              builder: (controller) {
+                return Row(
+                  spacing: 10.w,
+                  children: [
+                    GetBuilder(
+                      init: taskCountController,
+                      builder: (controller) {
+                        return SummaryCard(
+                          title: "New",
+                          count: taskCountController.newCount,
+                        );
+                      },
+                    ),
+                    GetBuilder(
+                      init: taskCountController,
+                      builder: (controller) {
+                        return SummaryCard(
+                          title: "progressing",
+                          count: taskCountController.progressCount,
+                        );
+                      },
+                    ),
+                    GetBuilder(
+                      init: taskCountController,
+                      builder: (controller) {
+                        return SummaryCard(
+                          title: "completed",
+                          count: taskCountController.completeCount,
+                        );
+                      },
+                    ),
+                    GetBuilder(
+                      init: taskCountController,
+                      builder: (controller) {
+                        return SummaryCard(
+                          title: "canceled",
+                          count: taskCountController.cancelCount,
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           Expanded(child: screens[selectedIndex]),
         ],
       ),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
@@ -195,6 +204,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         },
         child: Icon(Icons.add),
       ),
+
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (idx) {

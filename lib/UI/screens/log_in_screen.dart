@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
-import 'package:flutter_task_manager_api_project/Data/model/login_model.dart';
-import 'package:flutter_task_manager_api_project/UI/Controllers/auth_controller.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/login_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/RegisterScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/UserHomeScreen.dart';
+import 'package:flutter_task_manager_api_project/UI/widgets/CenterCircullarProgressIndicator.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/ForgetPasswordEmailScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
+import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
-import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
@@ -21,7 +20,7 @@ class _LogInScreenState extends State<LogInScreen> {
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _loginInProgress = false;
+  final LoginController loginController = Get.find<LoginController>();
 
   @override
   Widget build(BuildContext context) {
@@ -73,14 +72,21 @@ class _LogInScreenState extends State<LogInScreen> {
                   return null;
                 },
                 ),
-                Visibility(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _onTapSignInButton,
-                      child: Icon(Icons.double_arrow_outlined),
-                    ),
-                  ),
+                GetBuilder(
+                  init: loginController,
+                  builder: (controller){
+                    return Visibility(
+                      replacement: CenterCircularProgressIndicator(),
+                      visible: !loginController.loginProgress,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _onTapSignInButton,
+                          child: Icon(Icons.double_arrow_outlined),
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: 5.h),
                 Column(
@@ -117,9 +123,15 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 
-  void _onTapSignInButton() {
-    if (_formKey.currentState!.validate()) {
-      _logIn();
+  void _onTapSignInButton() async{
+    if (_formKey.currentState!.validate()){
+      bool isSuccessful = await loginController.logIn(_emailTEController.text, _passwordTEController.text);
+      if (isSuccessful){
+        showSnackBarMessage(context, "Login Successful.");
+        Get.offAll(UserHomeScreen());
+      }else{
+        showSnackBarMessage(context, loginController.errorMessage);
+      }
     }
   }
 
@@ -139,45 +151,10 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 
-  Future<void> _logIn() async {
-    if (_formKey.currentState!.validate()){
-      _loginInProgress = true;
-      setState(() {});
-
-      Map<String, dynamic> requestBody = {
-        "email": _emailTEController.text.trim(),
-        "password": _passwordTEController.text,
-      };
-
-      NetworkResponse response = await NetworkClient.postRequest(
-        url: Urls.loginUrl,
-        body: requestBody,
-      );
-      _loginInProgress = false;
-      setState(() {});
-
-      if (response.isSuccess) {
-        LoginModel loginModel = LoginModel.fromJason(response.data!);
-        await AuthController.saveUserInformation(
-          loginModel.token,
-          loginModel.userModel,
-        );
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => UserHomeScreen()),
-          (predicate) => false,
-        );
-      } else {
-        showSnackBarMessage(context, response.errorMessage!, true);
-      }
-    }
-  }
-
   @override
   void dispose() {
     _emailTEController.dispose();
     _passwordTEController.dispose();
-    // TODO: implement dispose
     super.dispose();
   }
 

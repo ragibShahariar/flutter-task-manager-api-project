@@ -2,14 +2,19 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
+import 'package:flutter_task_manager_api_project/Data/model/profile_update_model.dart';
 import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
 import 'package:flutter_task_manager_api_project/UI/Controllers/auth_controller.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/profile_update_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../Data/model/login_model.dart';
 import '../../ui/screens/log_in_screen.dart';
+import '../Controllers/profile_Controller.dart';
 import '../widgets/CenterCircullarProgressIndicator.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
@@ -35,7 +40,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final TextEditingController _updatePasswordController =
       TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _updateProfileInProgress = false;
+
+  final ProfileUpdateController profileUpdateController =
+      Get.find<ProfileUpdateController>();
+
+  final profileController = Get.find<ProfileController>();
 
   @override
   Widget build(BuildContext context) {
@@ -130,19 +139,27 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                           return null;
                         },
                       ),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Visibility(
-                          visible: !_updateProfileInProgress,
-                          replacement: const CenterCircularProgressIndicator(),
-                          child: ElevatedButton(
-                            onPressed: _onTapSubmitButton,
-                            child: Icon(
-                              Icons.double_arrow_sharp,
-                              color: Colors.white,
+                      GetBuilder(
+                        init: profileUpdateController,
+                        builder: (controller) {
+                          return Visibility(
+                            visible:
+                                !profileUpdateController
+                                    .isUpdateProfileInProgress,
+                            replacement:
+                                const CenterCircularProgressIndicator(),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _onTapSubmitButton,
+                                child: Icon(
+                                  Icons.double_arrow_sharp,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -157,53 +174,29 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   void _onTapSubmitButton() {
     if (_formKey.currentState!.validate()) {
-      updateProfile();
+      _updateProfile();
     }
   }
 
-  Future<void> updateProfile() async {
-    _updateProfileInProgress = true;
-    setState(() {});
-
-    Map<String, dynamic> updateProfileRequestBody = {
-      "email": _updateEmailController.text,
-      "firstName": _updateFNameController.text,
-      "lastName": _updateLNameController.text,
-      "mobile": _updatePhoneController.text,
-      "password": _updatePasswordController.text,
-    };
-
-    NetworkResponse response = await NetworkClient.postRequest(
-      url: Urls.updateProfileUrl,
-      body: updateProfileRequestBody,
-    );
-    _updateProfileInProgress = false;
-    setState(() {});
-
-    if (response.isSuccess) {
-      showSnackBarMessage(context, 'User updated successfully!');
-
-      Map<String, dynamic> requestBody = {
-        "email": _updateEmailController.text.trim(),
-        "password": _updatePasswordController.text,
-      };
-
-      NetworkResponse response = await NetworkClient.postRequest(
-        url: Urls.loginUrl,
-        body: requestBody,
+  void _updateProfile() async {
+    if (_formKey.currentState!.validate()) {
+      bool isSuccess = await profileUpdateController.updateProfile(
+        _updateEmailController.text.trim(),
+        _updateFNameController.text.trim(),
+        _updateLNameController.text.trim(),
+        _updatePhoneController.text.trim(),
+        _updatePasswordController.text.trim(),
       );
-      if (response.isSuccess) {
-
-        LoginModel loginModel = LoginModel.fromJason(response.data!);
-        await AuthController.saveUserInformation(
-          loginModel.token,
-          loginModel.userModel,
-        );
-        setState(() {});
-        AuthController.getUserInformation();
-        Navigator.pop(context, true);
+      if (isSuccess) {
+        showSnackBarMessage(context, 'User updated successfully!');
+        profileController.refreshFromAuth();
+        Get.back();
       } else {
-        showSnackBarMessage(context, response.errorMessage!, true);
+        showSnackBarMessage(
+          context,
+          profileUpdateController.errorMessage,
+          true,
+        );
       }
     }
   }

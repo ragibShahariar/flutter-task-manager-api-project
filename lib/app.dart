@@ -1,10 +1,12 @@
-import 'package:flutter_task_manager_api_project/UI/screens/UserHomeScreen.dart';
+import 'package:flutter_task_manager_api_project/UI/Controllers/login_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_task_manager_api_project/controller_binder.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
+import 'package:get/get.dart';
 
-import 'Data/model/task_model.dart';
 
 class TaskManagerApp extends StatefulWidget {
   const TaskManagerApp({super.key});
@@ -22,7 +24,8 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
 
     return Sizer(
       builder: (context, orientation, screenType) {
-        return MaterialApp(
+        return GetMaterialApp(
+          initialBinding: ControllerBinder(),
           theme: ThemeData(
             colorScheme: ColorScheme(brightness: Brightness.light, primary: Colors.green, onPrimary: Colors.green, secondary: Colors.green, onSecondary: Colors.white, error: Colors.red, onError: Colors.white, surface: Colors.white, onSurface: Colors.black),
             textTheme: GoogleFonts.workSansTextTheme(textTheme),
@@ -61,3 +64,4 @@ class _TaskManagerAppState extends State<TaskManagerApp> {
     );
   }
 }
+
