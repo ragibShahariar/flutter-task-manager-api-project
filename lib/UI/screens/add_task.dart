@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
 import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
-import 'package:flutter_task_manager_api_project/UI/screens/UserHomeScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../Data/model/task_model.dart';
@@ -146,7 +147,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
                                   selectedStatus.name,
                                 );
                                 if (taskAdded) {
-                                  Navigator.pop(context, true);
+                                  Get.back();
                                 }
                               }
                             },

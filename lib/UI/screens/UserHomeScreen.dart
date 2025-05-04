@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
 import 'package:flutter_task_manager_api_project/UI/Controllers/task_count_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/add_task.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
@@ -7,7 +6,6 @@ import 'package:flutter_task_manager_api_project/UI/widgets/summary_card.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_task_manager_api_project/Data/model/task_model.dart';
-import '../../Data/utils/urls.dart';
 import '../Controllers/cancel_task_fetch_controller.dart';
 import '../Controllers/complete_task_fetch_controller.dart';
 import '../Controllers/delete_task_controller.dart';
@@ -194,10 +192,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddNewTaskScreen()),
-          );
+          final result = await Get.to(AddNewTaskScreen());
           if (result == true) {
             _refreshCurrentScreen();
           }

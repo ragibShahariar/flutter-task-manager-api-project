@@ -4,6 +4,8 @@ import 'package:flutter_task_manager_api_project/UI/screens/ForgetPasswordPinVer
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
 
@@ -111,12 +113,7 @@ class _ForgetPasswordEmailScreenState extends State<ForgetPasswordEmailScreen> {
 
     if (response.isSuccess) {
       showSnackBarMessage(context, response.data!['data']);
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => ForgetPasswordPinVerificationScreen(email: forgotPasswordEmailController.text),
-        ),
-        (predicate) => false,
-      );
+      Get.offAll(ForgetPasswordPinVerificationScreen(email: forgotPasswordEmailController.text));
     }else{
       showSnackBarMessage(context, response.data!['data']);
     }

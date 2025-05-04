@@ -1,4 +1,3 @@
-import 'package:flutter_task_manager_api_project/UI/Controllers/login_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/controller_binder.dart';

@@ -1,19 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
-import 'package:flutter_task_manager_api_project/Data/model/profile_update_model.dart';
-import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
 import 'package:flutter_task_manager_api_project/UI/Controllers/auth_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/Controllers/profile_update_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/show_snakbar_message.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:sizer/sizer.dart';
-
-import '../../Data/model/login_model.dart';
-import '../../ui/screens/log_in_screen.dart';
 import '../Controllers/profile_Controller.dart';
 import '../widgets/CenterCircullarProgressIndicator.dart';
 

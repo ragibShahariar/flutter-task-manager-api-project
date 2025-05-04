@@ -136,19 +136,11 @@ class _LogInScreenState extends State<LogInScreen> {
   }
 
   void _onTapForgotPasswordButton() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ForgetPasswordEmailScreen(),
-      ),
-    );
+    Get.to(ForgetPasswordEmailScreen());
   }
 
   void _onTapSignUpButton() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const RegisterScreen()),
-    );
+    Get.to(RegisterScreen());
   }
 
   @override

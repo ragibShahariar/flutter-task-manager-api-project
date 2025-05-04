@@ -1,4 +1,3 @@
-import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
 import 'package:flutter_task_manager_api_project/UI/Controllers/register_user_controller.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/UserHomeScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/log_in_screen.dart';
@@ -10,7 +9,6 @@ import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 import 'package:email_validator/email_validator.dart';
 
-import '../../Data/utils/urls.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -161,11 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Text("Have an account?"),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => LogInScreen(),
-                          ),
-                        );
+                        Get.to(LogInScreen());
                       },
                       child: Text(
                         "Sign in",

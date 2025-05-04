@@ -1,11 +1,11 @@
-import 'package:flutter_task_manager_api_project/UI/screens/RegisterScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/UserHomeScreen.dart';
 import 'package:flutter_task_manager_api_project/UI/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../Data/model/task_model.dart';
 
 class SetPasswordScreen extends StatefulWidget {
   const SetPasswordScreen({super.key});
@@ -51,7 +51,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                       ),
                     ),
                     Text(
-                      'Minimum length of password is 8 character, with latter and number combination',
+                      'Minimum length of password is 6 character, with latter and number combination',
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],
@@ -76,10 +76,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/home', arguments: {
-                        'data' : "Ragib Shahariar",
-                        'email': "ragibshahriar07@gmail.com"
-                      });
+                      Get.to(UserHomeScreen());
                     },
                     child: Icon(Icons.double_arrow_sharp, color: Colors.white),
                   ),
@@ -91,7 +88,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                     Text("Have an account?"),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LogInScreen()));
+                        Get.to(LogInScreen());
                       },
                       child: Text(
                         "Sign in",

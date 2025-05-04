@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_api_project/Data/Services/network_client.dart';
 import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 import '../widgets/show_snakbar_message.dart';
 import 'log_in_screen.dart';
@@ -129,10 +131,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       if (response.isSuccess){
         showSnackBarMessage(context, "Login with your email and password");
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => LogInScreen()),
-              (predicate) => false,
-        );
+        Get.offAll(LogInScreen());
       }
 
     }

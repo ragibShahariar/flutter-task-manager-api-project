@@ -4,6 +4,8 @@ import 'package:flutter_task_manager_api_project/UI/screens/log_in_screen.dart';
 import 'package:flutter_task_manager_api_project/UI/widgets/backgroundSVG.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_task_manager_api_project/Data/utils/urls.dart';
 
@@ -129,7 +131,7 @@ class _ForgetPasswordPinVerificationScreenState extends State<ForgetPasswordPinV
                     Text("Have an account?"),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LogInScreen()));
+                        Get.to(LogInScreen());
                       },
                       child: Text("Sign in", style: TextStyle(color: Colors.green)),
                     ),
@@ -168,10 +170,7 @@ class _ForgetPasswordPinVerificationScreenState extends State<ForgetPasswordPinV
 
     if (response.isSuccess) {
       showSnackBarMessage(context, response.data!['data']);
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => ResetPasswordScreen(email: widget.email, otp: pin,)),
-            (predicate) => false,
-      );
+      Get.offAll(ResetPasswordScreen(email: widget.email, otp: pin,));
     } else {
       showSnackBarMessage(context, response.data!['data']);
     }
